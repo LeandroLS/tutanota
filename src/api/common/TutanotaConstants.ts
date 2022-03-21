@@ -943,3 +943,10 @@ export enum UsageTestMetricType {
 }
 
 export const UsageTestMetricTypeToName = reverse(UsageTestMetricType)
+
+export enum UsageTestParticipationMode {
+	Once = "0",
+	Unlimited = "1",
+}
+
+export const UsageTestParticipationModeToName = reverse(UsageTestParticipationMode)
