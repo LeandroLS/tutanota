@@ -176,6 +176,8 @@ export interface LoginFacade {
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void>
 
 	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string>
+
+	isPersistentSession(): Promise<boolean>
 }
 
 export class LoginFacadeImpl implements LoginFacade {
@@ -200,6 +202,8 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	// needed here for entropy updates, init as non-leader
 	private _leaderStatus!: WebsocketLeaderStatus
+
+	private sessionType: SessionType | null = null
 
 	constructor(
 		readonly worker: WorkerImpl,
@@ -228,6 +232,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		this._leaderStatus = createWebsocketLeaderStatus({
 			leaderStatus: false,
 		})
+		this.sessionType = null
 	}
 
 	init(indexer: Indexer, eventBusClient: EventBusClient) {
@@ -462,6 +467,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			throw new Error("different user is tried to login in existing other user's session")
 		}
 
+		this.sessionType = sessionType
 		this._accessToken = accessToken
 
 		const usingOfflineStorage = databaseKey != null
@@ -971,6 +977,10 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	getTotpVerifier(): Promise<TotpVerifier> {
 		return Promise.resolve(new TotpVerifier())
+	}
+
+	async isPersistentSession(): Promise<boolean> {
+		return this.sessionType === SessionType.Persistent
 	}
 }
 
